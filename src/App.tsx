@@ -32,22 +32,67 @@ import '@ionic/react/css/palettes/dark.system.css';
 
 /* Theme variables */
 import './theme/variables.css';
+import React, { useEffect, useState } from 'react';
+import {  IonHeader, IonTitle, IonToolbar, IonContent, IonButton, IonText } from '@ionic/react';
+import { Pedometer } from '@ionic-native/pedometer';
+import { Plugins } from '@capacitor/core';
 
 setupIonicReact();
 
-const App: React.FC = () => (
-  <IonApp>
-    <IonReactRouter>
-      <IonRouterOutlet>
-        <Route exact path="/home">
-          <Home />
-        </Route>
-        <Route exact path="/">
-          <Redirect to="/home" />
-        </Route>
-      </IonRouterOutlet>
-    </IonReactRouter>
-  </IonApp>
-);
+const App: React.FC = () => {
+  
+const { Device } = Plugins;
+const [stepCount, setStepCount] = useState(0);
+const [isPedometerAvailable, setIsPedometerAvailable] = useState(false);
+
+useEffect(() => {
+  const checkPedometerAvailability = async () => {
+    const info = await Device.getInfo();
+    if (info.platform !== 'web') {
+      Pedometer.isStepCountingAvailable()
+        .then((available) => {
+          setIsPedometerAvailable(available);
+        })
+        .catch((error) => {
+          console.error('Pedometer not available:', error);
+        });
+    }
+  };
+  checkPedometerAvailability();
+}, []);
+
+const startStepCounting = () => {
+  Pedometer.startPedometerUpdates()
+    .subscribe((data) => {
+      setStepCount(data.numberOfSteps);
+    });
+};
+
+
+  return (
+    <IonApp>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>Compteur de pas</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent className="ion-padding">
+        {isPedometerAvailable ? (
+          <>
+            <IonButton onClick={startStepCounting}>Démarrer le comptage des pas</IonButton>
+            <IonText>
+              <h2>Nombre de pas : {stepCount}</h2>
+            </IonText>
+          </>
+        ) : (
+          <IonText>
+            <h2>Le pédomètre n'est pas disponible sur cet appareil.</h2>
+          </IonText>
+        )}
+      </IonContent>
+    </IonApp>
+  );
+};
+
 
 export default App;
