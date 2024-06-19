@@ -35,19 +35,18 @@ import './theme/variables.css';
 import React, { useEffect, useState } from 'react';
 import {  IonHeader, IonTitle, IonToolbar, IonContent, IonButton, IonText } from '@ionic/react';
 import { Pedometer } from '@ionic-native/pedometer';
-import { Plugins } from '@capacitor/core';
+import { Device } from '@capacitor/device';
 
 setupIonicReact();
 
 const App: React.FC = () => {
-  
-const { Device } = Plugins;
 const [stepCount, setStepCount] = useState(0);
 const [isPedometerAvailable, setIsPedometerAvailable] = useState(false);
 
 useEffect(() => {
   const checkPedometerAvailability = async () => {
     const info = await Device.getInfo();
+    console.log('info : ',info );
     if (info.platform !== 'web') {
       Pedometer.isStepCountingAvailable()
         .then((available) => {
